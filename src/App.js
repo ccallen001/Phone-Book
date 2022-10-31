@@ -6,8 +6,6 @@ import Filter from './components/Filter';
 import AddNew from './components/AddNew';
 import PhoneBook from './components/PhoneBook';
 
-// import Note from './components/Note';
-
 import Notification from './components/Notification';
 
 console.clear();
@@ -49,13 +47,11 @@ const App = () => {
           phoneBookService
             .getAll()
             .then((phoneBook) => setPhoneBook(phoneBook));
-          setErrorMessage('User successfully updated.');
-          setTimeout(() => setErrorMessage(null), 3000);
         })
         .catch(() =>
           setErrorMessage({
             msg: `${existingEntry.name} has been deleted.`,
-            color: 'red'
+            color: 'green'
           })
         );
 

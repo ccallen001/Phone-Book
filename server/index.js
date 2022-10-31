@@ -2,8 +2,9 @@ require('dotenv').config();
 
 const express = require('express');
 const app = express();
-
 const cors = require('cors');
+
+const Entry = require('./models/entry');
 
 app.use(express.static('build'));
 app.use(express.json());
@@ -32,12 +33,20 @@ const phoneBook = [
   }
 ];
 
-const generateId = () =>
-  (phoneBook.length > 0 ? Math.max(...phoneBook.map((n) => n.id)) : 0) + 1;
-
 app.get('/', (req, res) => res.send('<h1>Phone Book</h1>'));
 
-app.get('/api/phone-book', (req, res) => res.json(phoneBook));
+app.get('/api/phone-book', (_, res) => {
+  Entry.find({})
+    .then((entries) => res.json(entries))
+    .catch((err) => {
+      console.error(
+        '\x1b[41m%s\x1b[0m',
+        `error finding phone book entries: ${err}`
+      );
+      mongoose.connection.close();
+      process.exit(1);
+    });
+});
 
 app.get('/api/phone-book/:id', (req, res) => {
   const person = phoneBook.find(
@@ -46,6 +55,18 @@ app.get('/api/phone-book/:id', (req, res) => {
   if (!person) return res.status(404).end();
   res.json(person);
 });
+
+app.post('/api/phone-book', (req, res) => {
+  new Entry({
+    name: req.body.name,
+    phone: req.body.phone
+  })
+    .save()
+    .then((entry) => res.json(entry))
+    .catch((err) => console.error(err));
+});
+
+app.delete();
 
 const PORT = process.env.PORT;
 
