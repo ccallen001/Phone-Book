@@ -4,7 +4,22 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 
+const PORT = process.env.PORT;
+
 const Entry = require('./models/entry');
+
+const unknownInput = (_req, res, _next) =>
+  res.status(404).send({ error: 'unknown endpoint' });
+
+const errorHandler = (error, _, res, next) => {
+  console.error(error.message);
+
+  if (error.name === 'CastError') {
+    return res.status(400).send({ error: 'mal formatted id' });
+  }
+
+  next(error);
+};
 
 app.use(express.static('build'));
 app.use(express.json());
@@ -66,8 +81,13 @@ app.post('/api/phone-book', (req, res) => {
     .catch((err) => console.error(err));
 });
 
-app.delete();
+app.delete('/api/phone-book/:id', (req, res, next) =>
+  Entry.findByIdAndRemove(req.params.id)
+    .then(() => res.status(204).end())
+    .catch((err) => next(err))
+);
 
-const PORT = process.env.PORT;
+app.use(unknownInput);
+app.use(errorHandler);
 
 app.listen(PORT, () => console.log(`listening on port ${PORT}`));
