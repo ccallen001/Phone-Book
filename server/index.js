@@ -25,28 +25,28 @@ app.use(express.static('build'));
 app.use(express.json());
 app.use(cors());
 
-const phoneBook = [
-  {
-    name: 'Ada Lovelace',
-    phone: '66666666',
-    id: 2
-  },
-  {
-    name: 'Mary Poppendieck',
-    phone: '77777777',
-    id: 4
-  },
-  {
-    name: 'Arto Hellas',
-    phone: '8888888888',
-    id: 9
-  },
-  {
-    name: 'What, another test???',
-    phone: '000000000000',
-    id: 11
-  }
-];
+// const phoneBook = [
+//   {
+//     name: 'Ada Lovelace',
+//     phone: '66666666',
+//     id: 2
+//   },
+//   {
+//     name: 'Mary Poppendieck',
+//     phone: '77777777',
+//     id: 4
+//   },
+//   {
+//     name: 'Arto Hellas',
+//     phone: '8888888888',
+//     id: 9
+//   },
+//   {
+//     name: 'What, another test???',
+//     phone: '000000000000',
+//     id: 11
+//   }
+// ];
 
 app.get('/', (req, res) => res.send('<h1>Phone Book</h1>'));
 
@@ -63,12 +63,10 @@ app.get('/api/phone-book', (_, res) => {
     });
 });
 
-app.get('/api/phone-book/:id', (req, res) => {
-  const person = phoneBook.find(
-    (person) => person.id === parseInt(req.params.id)
-  );
-  if (!person) return res.status(404).end();
-  res.json(person);
+app.get('/api/phone-book/:id', (req, res, next) => {
+  Entry.findById(req.params.id)
+    .then((entry) => (entry ? res.json(entry) : res.status(404).end()))
+    .catch((err) => next(err));
 });
 
 app.post('/api/phone-book', (req, res) => {
@@ -79,6 +77,19 @@ app.post('/api/phone-book', (req, res) => {
     .save()
     .then((entry) => res.json(entry))
     .catch((err) => console.error(err));
+});
+
+app.put('/api/phone-book/:id', (req, res, next) => {
+  const body = req.body;
+
+  const entry = {
+    name: body.name,
+    number: body.number
+  };
+
+  Entry.findByIdAndUpdate(req.params.id, entry, { new: true })
+    .then((entry) => res.json(entry))
+    .catch((err) => next(err));
 });
 
 app.delete('/api/phone-book/:id', (req, res, next) =>

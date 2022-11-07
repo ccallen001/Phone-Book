@@ -41,17 +41,19 @@ const App = () => {
       phoneBookService
         .updateEntry(existingEntry.id, {
           name: existingEntry.name,
-          phone: newPhone
+          number: newPhone
         })
         .then(() => {
-          phoneBookService
-            .getAll()
-            .then((phoneBook) => setPhoneBook(phoneBook));
+          phoneBookService.getAll().then((phoneBook) => {
+            setNewName('');
+            setNewPhone('');
+            setPhoneBook(phoneBook);
+          });
         })
         .catch(() =>
           setErrorMessage({
-            msg: `${existingEntry.name} has been deleted.`,
-            color: 'green'
+            msg: `Cannot update ${existingEntry.name}, they have already been deleted.`,
+            color: 'red'
           })
         );
 
