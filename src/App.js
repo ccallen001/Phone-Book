@@ -45,31 +45,38 @@ const App = () => {
         })
         .then(() => {
           phoneBookService.getAll().then((phoneBook) => {
+            setPhoneBook(phoneBook);
+
             setNewName('');
             setNewPhone('');
-            setPhoneBook(phoneBook);
           });
         })
-        .catch(() =>
+        .catch((err) => {
           setErrorMessage({
-            msg: `Cannot update ${existingEntry.name}, they have already been deleted.`,
+            msg: err.response.data.error,
             color: 'red'
-          })
-        );
+          });
+          setTimeout(() => setErrorMessage(null), 3000);
+        });
 
       return;
     }
 
     phoneBookService
-      .addEntry({ name: newName, phone: newPhone })
+      .addEntry({ name: newName, number: newPhone })
       .then((entry) => {
         setPhoneBook(phoneBook.concat(entry));
+
         setErrorMessage({ msg: 'Entry successfully added.', color: 'green' });
         setTimeout(() => setErrorMessage(null), 3000);
-      });
 
-    setNewName('');
-    setNewPhone('');
+        setNewName('');
+        setNewPhone('');
+      })
+      .catch((err) => {
+        setErrorMessage({ msg: err.response.data.error, color: 'red' });
+        setTimeout(() => setErrorMessage(null), 3000);
+      });
   }
 
   function handleDelete(id, name) {
@@ -83,7 +90,7 @@ const App = () => {
       .deleteEntry(id)
       .then(() => {
         phoneBookService.getAll().then((phoneBook) => setPhoneBook(phoneBook));
-        setErrorMessage({ msg: 'User successfully deleted.', color: 'green' });
+        setErrorMessage({ msg: 'Entry successfully deleted.', color: 'green' });
         setTimeout(() => setErrorMessage(null), 3000);
       })
       .catch((error) => alert(error));

@@ -16,6 +16,8 @@ const errorHandler = (error, _, res, next) => {
 
   if (error.name === 'CastError') {
     return res.status(400).send({ error: 'mal formatted id' });
+  } else if (error.name === 'ValidationError') {
+    return res.status(400).send({ error: error.message });
   }
 
   next(error);
@@ -24,29 +26,6 @@ const errorHandler = (error, _, res, next) => {
 app.use(express.static('build'));
 app.use(express.json());
 app.use(cors());
-
-// const phoneBook = [
-//   {
-//     name: 'Ada Lovelace',
-//     phone: '66666666',
-//     id: 2
-//   },
-//   {
-//     name: 'Mary Poppendieck',
-//     phone: '77777777',
-//     id: 4
-//   },
-//   {
-//     name: 'Arto Hellas',
-//     phone: '8888888888',
-//     id: 9
-//   },
-//   {
-//     name: 'What, another test???',
-//     phone: '000000000000',
-//     id: 11
-//   }
-// ];
 
 app.get('/', (req, res) => res.send('<h1>Phone Book</h1>'));
 
@@ -69,25 +48,24 @@ app.get('/api/phone-book/:id', (req, res, next) => {
     .catch((err) => next(err));
 });
 
-app.post('/api/phone-book', (req, res) => {
+app.post('/api/phone-book', (req, res, next) => {
   new Entry({
     name: req.body.name,
-    phone: req.body.phone
+    number: req.body.number
   })
     .save()
     .then((entry) => res.json(entry))
-    .catch((err) => console.error(err));
+    .catch((err) => next(err));
 });
 
 app.put('/api/phone-book/:id', (req, res, next) => {
-  const body = req.body;
+  const { name, number } = req.body;
 
-  const entry = {
-    name: body.name,
-    number: body.number
-  };
-
-  Entry.findByIdAndUpdate(req.params.id, entry, { new: true })
+  Entry.findByIdAndUpdate(
+    req.params.id,
+    { name, number },
+    { new: true, runValidators: true, context: 'query' }
+  )
     .then((entry) => res.json(entry))
     .catch((err) => next(err));
 });
