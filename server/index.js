@@ -8,7 +8,7 @@ const PORT = process.env.PORT;
 
 const Entry = require('./models/entry');
 
-const unknownInput = (_req, res, _next) =>
+const unknownInput = (_req, res) =>
   res.status(404).send({ error: 'unknown endpoint' });
 
 const errorHandler = (error, _, res, next) => {
@@ -37,7 +37,6 @@ app.get('/api/phone-book', (_, res) => {
         '\x1b[41m%s\x1b[0m',
         `error finding phone book entries: ${err}`
       );
-      mongoose.connection.close();
       process.exit(1);
     });
 });
